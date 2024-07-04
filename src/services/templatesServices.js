@@ -178,8 +178,13 @@ const searchTemplateByTechnology = async (req, res) => {
           through: {
             attributes: [],
           },
-        },
-      ]
+        },{
+          model: Technology,
+          through: {
+            attributes: [],
+          },
+        }
+      ],
     });
     
   
