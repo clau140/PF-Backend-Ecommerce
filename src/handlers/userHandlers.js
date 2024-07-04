@@ -39,6 +39,7 @@ try {
 }
 const addFavorite = async (req, res) => {
     const { templateId } = req.body;
+    console.log(templateId);
     const userId = req.userId;
     try {
         const response = await addNewFavorite(templateId, userId);
@@ -67,6 +68,7 @@ const getFavorites = async (req, res) => {
 
 const deleteFavorite = async (req, res) => {
     const { templateId } = req.body;
+    console.log(templateId);
     const userId = req.userId;
     try {
         const result = await removeFavorite(templateId, userId);

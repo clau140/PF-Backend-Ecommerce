@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { User, Template, Order } = require('../db');
+const { User, Template, Order, Review, Image} = require('../db');
 const token = require('../utils/token');
 const sendMail = require('../utils/nodemailer');
 const firebaseAdmin = require("../firebaseConfig/firebaseConfig")
@@ -32,14 +32,6 @@ const registerService = async (email, lastname, name, userPassword, image) => {
 const loginService = async (email, userPassword, firebaseToken) => {
 
   // verificar si usuario esta desactivado.
-  const user = await User.findOne({ where: { email } });
-
-        if (!user) {
-          return { status: 400, error: 'Usuario no encontrado.' };
-      };
-      if (user.deleted_at !== null) {
-          return { status: 403, error: 'Tu cuenta ha sido desactivada.' };
-      };
 
   try {
     let user;
@@ -51,10 +43,18 @@ const loginService = async (email, userPassword, firebaseToken) => {
         where: { firebaseUid: uid }, include: [ {
           model: Order,
           foreignKey: "user_id"
+        }, {
+          model: Template,
+          as: 'Favorites',
+          through: {
+            attributes: []
+          }
         } ]
       });
+      if (user.deleted_at !== null) {
+        return { status: 403, error: 'Tu cuenta ha sido desactivada.' };
+      };
       if (!user) {
-        console.log(decodedToken);
         user = await User.create(
           {
             email,
@@ -69,12 +69,23 @@ const loginService = async (email, userPassword, firebaseToken) => {
 
       user = await User.findOne({
         where: { email },
-        include: [ {
-          model: Order,
-          foreignKey: "user_id"
-        } ]
+        include: [
+          {
+            model: Order,
+            foreignKey: "user_id"
+          },
+          {
+            model: Template,
+            as: 'Favorites',
+            through: {
+              attributes: []
+            }
+          }
+        ]
       });
-
+      if (user.deleted_at !== null) {
+        return { status: 403, error: 'Tu cuenta ha sido desactivada.' };
+      };
       const passwordCorrect = user === null
         ? false
         : await bcrypt.compare(userPassword, user.password);
@@ -101,7 +112,30 @@ const addNewFavorite = async (templateId, userId) => {
     const template = await Template.findByPk(templateId);
     if (user && template) {
       await user.addFavorite(template);
-      return { status: 200, data: 'Favorito añadido.' };
+      const updatedFavorites = await User.findByPk(userId, {
+        include: [
+          {
+            model: Template,
+            as: 'Favorites',
+            include: [
+              {
+                model: Review,
+                as: 'reviews',
+              },
+              {
+                model: Image,
+                through: {
+                  attributes: [], 
+                },
+              },
+            ],
+            through: {
+              attributes: [],
+            },
+          },
+        ],
+      }).then(user => user.Favorites);
+      return { status: 200, message: 'Favorito añadido.', data: updatedFavorites };
     } else {
       return { status: 404, error: 'Usuario o Template no encontrado.' };
     }
@@ -112,16 +146,29 @@ const addNewFavorite = async (templateId, userId) => {
 };
 
 const getAllFavorites = async (userId) => {
-
   try {
     const user = await User.findByPk(userId, {
-      include: [ {
-        model: Template,
-        as: 'Favorites',
-        through: {
-          attributes: []
-        }
-      } ]
+      include: [
+        {
+          model: Template,
+          as: 'Favorites',
+          include: [
+            {
+              model: Review,
+              as: 'reviews',
+            },
+            {
+              model: Image,
+              through: {
+                attributes: [],
+              }
+            },
+          ],
+          through: {
+            attributes: [],
+          },
+        },
+      ],
     });
 
     if (!user) {
@@ -141,7 +188,36 @@ const removeFavorite = async (templateId, userId) => {
 
     if (user && template) {
       await user.removeFavorite(template);
-      return { status: 200, data: "Favorito eliminado." };
+
+      const updatedFavorites = await User.findByPk(userId, {
+        include: [
+          {
+            model: Template,
+            as: 'Favorites',
+            include: [
+              {
+                model: Review,
+                as: 'reviews',
+              },
+              {
+                model: Image,
+                through: {
+                  attributes: [], 
+                }
+              },
+            ],
+            through: {
+              attributes: [],
+            },
+          },
+        ],
+      }).then(user => user.Favorites);
+
+      return {
+        status: 200,
+        message: "Favorito eliminado.",
+        data: updatedFavorites,
+      };
     } else {
       return { status: 404, error: 'Usuario o Template no encontrado.' };
     }
@@ -150,6 +226,8 @@ const removeFavorite = async (templateId, userId) => {
     return { status: 500, error: error.message };
   }
 };
+
+
 
 
 const getProfile = async (req, res) => {
@@ -168,6 +246,25 @@ const getProfile = async (req, res) => {
         {
           model: Order,
           foreignKey: 'user_id',
+        },
+        {
+          model: Template,
+          as: 'Favorites',
+          through: {
+            attributes: []
+          },
+          include: [
+            {
+              model: Review,
+              as: 'reviews',
+            },
+            {
+              model: Image,
+              through: {
+                attributes: [], 
+              }
+            },
+          ],
         }
       ]
     });
