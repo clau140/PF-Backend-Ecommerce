@@ -3,9 +3,10 @@ const jwt = require('jsonwebtoken')
 const SECRET = process.env.SECRET
 
 module.exports = (user) => {
+
     const userForToken = {
         name: user.name,
-        lastename: user.lastename,
+        lastname: user.lastname,
         id: user.id,
         email:user.email
     }
