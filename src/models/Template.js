@@ -34,7 +34,7 @@ module.exports = (sequelize) => {
     },
     technology:{
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: true,  
     }
 
   },

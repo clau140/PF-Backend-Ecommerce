@@ -3,25 +3,26 @@ const {
   getTemplateId,
   getAllTechnologies,
   getAllCategories,
-  CreateTemplates,
 } = require("../services/templatesServices");
+
 const data = require("../../Data.json");
 const { Category, Technology, Template, Image } = require("../db");
+const { CreateTemplates } = require("../services/adminTemplatesServices");
 const { guardaImagenes } = require("../cloudinary/agregarImagen");
-
 
 const postTemplates = async (req, res) => {
   try {
-    const { name, description, price, imagen, technology, category } = req.body;
+    const { name, description, price, technology, category, image, isCover } = req.body;
 
-    if (!name || !description || !price || !imagen || !technology || !category) {
-      return res.status(400).json({ message: "Missing info" });
+    if (!name || !description || !price || !technology || !category || !image || !isCover) {
+      res.status(400).json({ message: "Missing info"  });
     } else {
       const newTemplate = await CreateTemplates(
         name,
         description,
         price,
-        imagen,
+        isCover,
+        image,
         technology,
         category
       );

@@ -165,10 +165,11 @@ const searchTemplateByTechnology = async (req, res) => {
   console.log("Searching for technology:", technologyName);
 
   try {
+   
     const templates = await Template.findAll({
       where: {
         technology: {
-          [ Op.iLike ]: `${technologyName}`, // Utiliza ILIKE para búsqueda por coincidencia parcial
+          [ Op.iLike ]: `%${technologyName}%`, // Utiliza ILIKE para búsqueda por coincidencia parcial
         },
       },
       include: [
@@ -185,16 +186,17 @@ const searchTemplateByTechnology = async (req, res) => {
         }
       ],
     });
-
-
-
+    
+  
+    
     if (templates.length === 0) {
       console.log("Technology not found:", technologyName);
       return res.status(404).json({ error: "Technology not found" });
     }
     console.log(templates);
+    console.log(templates);
     // Mapeamos los resultados para formatear la respuesta deseada
-
+    
 
     console.log("Technologies found:", templates);
    return res.status(200).json(templates);

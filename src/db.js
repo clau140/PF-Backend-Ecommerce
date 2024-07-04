@@ -18,6 +18,12 @@ const sequelize = new Sequelize({
   //     rejectUnauthorized: false
   //   }
   // },
+  // dialectOptions: {
+  //   ssl: {
+  //     require: true,
+  //     rejectUnauthorized: false
+  //   }
+  // },
   logging: false,
 });
 
@@ -52,6 +58,8 @@ const { Template, Category, Technology, User, Image, Review, Cart, Order,
 
 Template.belongsToMany(Image, { through: "TemplateImages" });
 Image.belongsToMany(Template, { through: "TemplateImages" });
+Technology.belongsToMany(Image, { through: "TechnologyImages" });
+Image.belongsToMany(Technology, { through: "TechnologyImages" });
 
 Category.belongsToMany(Image, {through: 'CategoriImages'});
 Image.belongsToMany(Category, {through: 'CategoriImages'});
