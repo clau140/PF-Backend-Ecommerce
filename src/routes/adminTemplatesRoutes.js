@@ -5,7 +5,7 @@ const { postTemplates } = require("../handlers/templatesHandlers");
 const adminTemplatesRouter = require("express").Router();
 
 adminTemplatesRouter
-.get("/", getAllTemplates)
-.delete("/:id", deleteTemplate)
+.get("/", loginRequire, getAllTemplates)
+.delete("/:id", loginRequire, deleteTemplate)
 .post("/create", postTemplates)
 module.exports = adminTemplatesRouter;
