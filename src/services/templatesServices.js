@@ -48,15 +48,6 @@ const getFilteredTemplates = async ({
         ...technologyFilter,
         ...categoryFilter,
       },
-      include: [
-        {
-          model: Image,
-          through: {
-            attributes: [],
-          },
-          where: imagen,
-        },
-      ],
     });
 
 
@@ -79,6 +70,10 @@ const getFilteredTemplates = async ({
           },
           where: imagen,
         },
+        {
+          model: Review,
+          as: 'reviews'
+        }
       ],
       order: orderArray.length ? orderArray : undefined,
       limit: limit !== null ? limit : undefined,
